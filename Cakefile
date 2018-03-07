@@ -59,7 +59,7 @@ end
 
 def carthage_copy_basic_frameworks(target)
     target.shell_script_build_phase 'Copy Carthage Frameworks', <<-SCRIPT
-        export SCRIPT_INPUT_FILE_COUNT=7
+        export SCRIPT_INPUT_FILE_COUNT=8
         export SCRIPT_INPUT_FILE_0=${SRCROOT}/Frameworks/Action.framework
         export SCRIPT_INPUT_FILE_1=${SRCROOT}/Frameworks/AsyncDisplayKit.framework
         export SCRIPT_INPUT_FILE_2=${SRCROOT}/Frameworks/IGListKit.framework
@@ -67,6 +67,7 @@ def carthage_copy_basic_frameworks(target)
         export SCRIPT_INPUT_FILE_4=${SRCROOT}/Frameworks/RxCocoa.framework
         export SCRIPT_INPUT_FILE_5=${SRCROOT}/Frameworks/RxOptional.framework
         export SCRIPT_INPUT_FILE_6=${SRCROOT}/Frameworks/RxSwift.framework
+        export SCRIPT_INPUT_FILE_7=${SRCROOT}/Frameworks/HueSDK.framework
         carthage copy-frameworks
     SCRIPT
 end
@@ -118,6 +119,7 @@ def basic_target(name, type)
         target.system_frameworks = ['Foundation']
         target.system_frameworks << 'UIKit'
 
+        target.include_files << 'Frameworks/HueSDK.framework'
         target.include_files << 'Frameworks/Action.framework'
         target.include_files << 'Frameworks/AsyncDisplayKit.framework'
         target.include_files << 'Frameworks/IGListKit.framework'
@@ -125,6 +127,17 @@ def basic_target(name, type)
         target.include_files << 'Frameworks/RxCocoa.framework'
         target.include_files << 'Frameworks/RxOptional.framework'
         target.include_files << 'Frameworks/RxSwift.framework'
+
+        target.shell_script_build_phase 'Hue Framework replace', <<-SCRIPT
+            BASE_DIR="${PROJECT_DIR}/Dependencies/HueSDK"
+
+            if [ ${PLATFORM_NAME} = "iphonesimulator" ]
+            then
+                ln -sF "${BASE_DIR}/simulator/HueSDK.framework" "${PROJECT_DIR}/Frameworks/HueSDK.framework"
+            else
+                ln -sF "${BASE_DIR}/device/HueSDK.framework" "${PROJECT_DIR}/Frameworks/HueSDK.framework"
+            fi
+        SCRIPT
 
         target.shell_script_build_phase 'Sources formatter', <<-SCRIPT
             ${SRCROOT}/Scripts/formatter
