@@ -1,0 +1,13 @@
+
+#!/usr/bin/env bash
+#
+# CopyPaste detection
+
+set -euo pipefail
+IFS=$'\n\t'
+
+cd "${0%/*}/.."
+
+pmd cpd --files Huequaliser --minimum-tokens 50 --language swift --encoding UTF-8 --format net.sourceforge.pmd.cpd.XMLRenderer > cpd-output.xml --failOnViolation true
+# Running script
+php Scripts/cpd_script.php -cpd-xml cpd-output.xml

@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+#
+# Resolve all dependencies that the application requires to run.
+
+set -euo pipefail
+IFS=$'\n\t'
+
+cd "${0%/*}/.."
+
+if [[ -s Brewfile ]] && [[ $(uname -s) == Darwin ]]; then
+    brew bundle check || brew bundle
+fi
+
+if [[ -s Gemfile ]]; then
+    bundle check || bundle install --full-index
+fi
+
+${0%/*}/dependencies

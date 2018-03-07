@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+#
+# Updates CHANGELOG.md 
+
+set -euo pipefail
+IFS=$'\n\t'
+
+cd "${0%/*}/.."
+
+npm install -g auto-changelog
+auto-changelog --template keepachangelog --commit-limit false

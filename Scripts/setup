@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+#
+# Setup environment for this project
+
+set -euo pipefail
+IFS=$'\n\t'
+
+${0%/*}/bootstrap

@@ -1,0 +1,43 @@
+using_bundler = defined? Bundler
+unless using_bundler
+  puts "\nPlease re-run using:".red
+  puts "  bundle exec pod install\n\n"
+  exit(1)
+end
+
+source 'https://github.com/CocoaPods/Specs.git'
+plugin 'cocoapods-rome'
+
+platform :ios, 9.0
+use_frameworks!
+inhibit_all_warnings!
+
+abstract_target :Dependencies do
+  # ReactiveX
+  pod 'RxSwift' # , git: 'https://github.com/ReactiveX/RxSwift.git'
+  pod 'RxCocoa' # , git: 'https://github.com/ReactiveX/RxSwift.git'
+  pod 'RxBlocking' # , git: 'https://github.com/ReactiveX/RxSwift.git'
+  pod 'RxTest' # , git: 'https://github.com/ReactiveX/RxSwift.git'
+  pod 'RxOptional' # , git: 'https://github.com/RxSwiftCommunity/RxOptional.git'
+  pod 'Action' # , git: 'https://github.com/RxSwiftCommunity/Action.git'
+  pod 'NSObject+Rx' # , git: 'https://github.com/RxSwiftCommunity/NSObject-Rx.git'
+  pod 'RxNimble' # , git: 'https://github.com/RxSwiftCommunity/RxNimble.git'
+
+  pod 'Quick'
+
+  # UI
+  pod 'Texture/IGListKit' # , git: 'https://github.com/texturegroup/texture.git'
+
+  target :Empty
+end
+
+install! 'cocoapods', integrate_targets: false
+
+post_install do |installer|
+  installer.pods_project.targets.each do |target|
+    target.build_configurations.each do |config|
+      config.build_settings['SWIFT_VERSION'] = '4.0'
+      config.build_settings['ENABLE_BITCODE'] = 'NO'
+    end
+  end
+end
