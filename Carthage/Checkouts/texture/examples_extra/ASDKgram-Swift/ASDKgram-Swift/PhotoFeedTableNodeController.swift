@@ -42,7 +42,7 @@ class PhotoFeedTableNodeController: ASViewController<ASTableNode> {
 		node.view.separatorStyle = .none
 		node.dataSource = self
 		node.delegate = self
-		node.leadingScreensForBatching = 2.5
+		node.view.leadingScreensForBatching = 2.5
 		navigationController?.hidesBarsOnSwipe = true
 	}
 	
@@ -64,10 +64,7 @@ class PhotoFeedTableNodeController: ASViewController<ASTableNode> {
 	}()
 	
 	func fetchNewBatchWithContext(_ context: ASBatchContext?) {
-		DispatchQueue.main.async {
-			self.activityIndicator.startAnimating()
-		}
-
+		activityIndicator.startAnimating()
 		photoFeed.updateNewBatchOfPopularPhotos() { additions, connectionStatus in
 			switch connectionStatus {
 			case .connected:

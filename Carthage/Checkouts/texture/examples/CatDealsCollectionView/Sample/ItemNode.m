@@ -20,16 +20,6 @@
 #import "PlaceholderNetworkImageNode.h"
 #import <AsyncDisplayKit/ASDisplayNodeExtras.h>
 
-static CGFloat ASIsRTL()
-{
-  static BOOL __isRTL = NO;
-  static dispatch_once_t onceToken;
-  dispatch_once(&onceToken, ^{
-    __isRTL = [UIApplication sharedApplication].userInterfaceLayoutDirection == UIUserInterfaceLayoutDirectionRightToLeft;
-  });
-  return __isRTL;
-}
-
 const CGFloat kFixedLabelsAreaHeight = 96.0;
 const CGFloat kDesignWidth = 320.0;
 const CGFloat kDesignHeight = 299.0;
@@ -38,7 +28,7 @@ const CGFloat kSoldOutGBHeight = 50.0;
 
 @interface ItemNode() <ASNetworkImageNodeDelegate>
 
-@property (nonatomic, strong) ItemViewModel *nodeModel;
+@property (nonatomic, strong) ItemViewModel *viewModel;
 
 @property (nonatomic, strong) PlaceholderNetworkImageNode *dealImageView;
 
@@ -56,35 +46,28 @@ const CGFloat kSoldOutGBHeight = 50.0;
 @end
 
 @implementation ItemNode
-// Defined on ASCellNode
-@dynamic nodeModel;
+@dynamic viewModel;
 
-+ (void)load
-{
-  // Need to happen on main thread.
-  ASIsRTL();
-}
-
-- (instancetype)init
+- (instancetype)initWithViewModel:(ItemViewModel *)viewModel
 {
   self = [super init];
   if (self != nil) {
-    [self setupNodes];
+    self.viewModel = viewModel;
+    [self setup];
+    [self updateLabels];
     [self updateBackgroundColor];
+    
+    ASSetDebugName(self, @"Item #%zd", viewModel.identifier);
+    self.accessibilityIdentifier = viewModel.titleText;
   }
   return self;
 }
 
-- (void)setNodeModel:(ItemViewModel *)nodeModel
-{
-  [super setNodeModel:nodeModel];
-  
-  [self updateLabels];
-  [self updateAccessibilityIdentifier];
++ (BOOL)isRTL {
+  return [UIApplication sharedApplication].userInterfaceLayoutDirection == UIUserInterfaceLayoutDirectionRightToLeft;
 }
 
-- (void)setupNodes
-{
+- (void)setup {
   self.dealImageView = [[PlaceholderNetworkImageNode alloc] init];
   self.dealImageView.delegate = self;
   self.dealImageView.placeholderEnabled = YES;
@@ -155,7 +138,7 @@ const CGFloat kSoldOutGBHeight = 50.0;
   self.soldOutLabelBackground.hidden = YES;
   self.soldOutLabelFlat.hidden = YES;
   
-  if (ASIsRTL()) {
+  if ([ItemNode isRTL]) {
     self.titleLabel.style.alignSelf = ASStackLayoutAlignSelfEnd;
     self.firstInfoLabel.style.alignSelf = ASStackLayoutAlignSelfEnd;
     self.distanceLabel.style.alignSelf = ASStackLayoutAlignSelfEnd;
@@ -171,54 +154,47 @@ const CGFloat kSoldOutGBHeight = 50.0;
   }
 }
 
-- (void)updateLabels
-{
+- (void)updateLabels {
   // Set Title text
-  if (self.nodeModel.titleText) {
-    self.titleLabel.attributedText = [[NSAttributedString alloc] initWithString:self.nodeModel.titleText attributes:[ItemStyles titleStyle]];
+  if (self.viewModel.titleText) {
+    self.titleLabel.attributedText = [[NSAttributedString alloc] initWithString:self.viewModel.titleText attributes:[ItemStyles titleStyle]];
   }
-  if (self.nodeModel.firstInfoText) {
-    self.firstInfoLabel.attributedText = [[NSAttributedString alloc] initWithString:self.nodeModel.firstInfoText attributes:[ItemStyles subtitleStyle]];
+  if (self.viewModel.firstInfoText) {
+    self.firstInfoLabel.attributedText = [[NSAttributedString alloc] initWithString:self.viewModel.firstInfoText attributes:[ItemStyles subtitleStyle]];
   }
   
-  if (self.nodeModel.secondInfoText) {
-    self.secondInfoLabel.attributedText = [[NSAttributedString alloc] initWithString:self.nodeModel.secondInfoText attributes:[ItemStyles secondInfoStyle]];
+  if (self.viewModel.secondInfoText) {
+    self.secondInfoLabel.attributedText = [[NSAttributedString alloc] initWithString:self.viewModel.secondInfoText attributes:[ItemStyles secondInfoStyle]];
   }
-  if (self.nodeModel.originalPriceText) {
-    self.originalPriceLabel.attributedText = [[NSAttributedString alloc] initWithString:self.nodeModel.originalPriceText attributes:[ItemStyles originalPriceStyle]];
+  if (self.viewModel.originalPriceText) {
+    self.originalPriceLabel.attributedText = [[NSAttributedString alloc] initWithString:self.viewModel.originalPriceText attributes:[ItemStyles originalPriceStyle]];
   }
-  if (self.nodeModel.finalPriceText) {
-    self.finalPriceLabel.attributedText = [[NSAttributedString alloc] initWithString:self.nodeModel.finalPriceText attributes:[ItemStyles finalPriceStyle]];
+  if (self.viewModel.finalPriceText) {
+        self.finalPriceLabel.attributedText = [[NSAttributedString alloc] initWithString:self.viewModel.finalPriceText attributes:[ItemStyles finalPriceStyle]];
   }
-  if (self.nodeModel.distanceLabelText) {
-    NSString *format = ASIsRTL() ? @"%@ •" : @"• %@";
-    NSString *distanceText = [NSString stringWithFormat:format, self.nodeModel.distanceLabelText];
+  if (self.viewModel.distanceLabelText) {
+    NSString *format = [ItemNode isRTL] ? @"%@ •" : @"• %@";
+    NSString *distanceText = [NSString stringWithFormat:format, self.viewModel.distanceLabelText];
     
     self.distanceLabel.attributedText = [[NSAttributedString alloc] initWithString:distanceText attributes:[ItemStyles distanceStyle]];
   }
   
-  BOOL isSoldOut = self.nodeModel.soldOutText != nil;
+  BOOL isSoldOut = self.viewModel.soldOutText != nil;
   
   if (isSoldOut) {
-    NSString *soldOutText = self.nodeModel.soldOutText;
+    NSString *soldOutText = self.viewModel.soldOutText;
     self.soldOutLabelFlat.attributedText = [[NSAttributedString alloc] initWithString:soldOutText attributes:[ItemStyles soldOutStyle]];
   }
   self.soldOutOverlay.hidden = !isSoldOut;
   self.soldOutLabelFlat.hidden = !isSoldOut;
   self.soldOutLabelBackground.hidden = !isSoldOut;
   
-  BOOL hasBadge = self.nodeModel.badgeText != nil;
+  BOOL hasBadge = self.viewModel.badgeText != nil;
   if (hasBadge) {
-    self.badge.attributedText = [[NSAttributedString alloc] initWithString:self.nodeModel.badgeText attributes:[ItemStyles badgeStyle]];
+    self.badge.attributedText = [[NSAttributedString alloc] initWithString:self.viewModel.badgeText attributes:[ItemStyles badgeStyle]];
     self.badge.backgroundColor = [ItemStyles badgeColor];
   }
   self.badge.hidden = !hasBadge;
-}
-
-- (void)updateAccessibilityIdentifier
-{
-  ASSetDebugName(self, @"Item #%zd", self.nodeModel.identifier);
-  self.accessibilityIdentifier = self.nodeModel.titleText;
 }
 
 - (void)updateBackgroundColor
@@ -230,6 +206,9 @@ const CGFloat kSoldOutGBHeight = 50.0;
   } else {
     self.backgroundColor = [UIColor whiteColor];
   }
+}
+
+- (void)imageNode:(ASNetworkImageNode *)imageNode didLoadImage:(UIImage *)image {
 }
 
 - (void)setSelected:(BOOL)selected
@@ -244,21 +223,20 @@ const CGFloat kSoldOutGBHeight = 50.0;
   [self updateBackgroundColor];
 }
 
-#pragma mark - ASDisplayNode
+#pragma mark - superclass
 
-- (void)displayWillStart
-{
+- (void)displayWillStart {
   [super displayWillStart];
   [self didEnterPreloadState];
 }
 
-- (void)didEnterPreloadState
-{
+- (void)didEnterPreloadState {
   [super didEnterPreloadState];
-  if (self.nodeModel) {
+  if (self.viewModel) {
     [self loadImage];
   }
 }
+
 
 - (ASLayoutSpec *)layoutSpecThatFits:(ASSizeRange)constrainedSize {
 
@@ -275,8 +253,7 @@ const CGFloat kSoldOutGBHeight = 50.0;
   return soldOutOverlay;
 }
 
-- (ASLayoutSpec *)textSpec
-{
+- (ASLayoutSpec *)textSpec {
   CGFloat kInsetHorizontal = 16.0;
   CGFloat kInsetTop = 6.0;
   CGFloat kInsetBottom = 0.0;
@@ -294,7 +271,7 @@ const CGFloat kSoldOutGBHeight = 50.0;
   
   NSArray *info1Children = @[self.firstInfoLabel, self.distanceLabel, horizontalSpacer1, self.originalPriceLabel];
   NSArray *info2Children = @[self.secondInfoLabel, horizontalSpacer2, self.finalPriceLabel];
-  if (ASIsRTL()) {
+  if ([ItemNode isRTL]) {
     info1Children = [[info1Children reverseObjectEnumerator] allObjects];
     info2Children = [[info2Children reverseObjectEnumerator] allObjects];
   }
@@ -311,8 +288,7 @@ const CGFloat kSoldOutGBHeight = 50.0;
   return textWrapper;
 }
 
-- (ASLayoutSpec *)imageSpecWithSize:(ASSizeRange)constrainedSize
-{
+- (ASLayoutSpec *)imageSpecWithSize:(ASSizeRange)constrainedSize {
   CGFloat imageRatio = [self imageRatioFromSize:constrainedSize.max];
   
   ASRatioLayoutSpec *imagePlace = [ASRatioLayoutSpec ratioLayoutSpecWithRatio:imageRatio child:self.dealImageView];
@@ -334,38 +310,34 @@ const CGFloat kSoldOutGBHeight = 50.0;
   return soldOutLabelOverBackground;
 }
 
-+ (CGSize)sizeForWidth:(CGFloat)width
-{
+
++ (CGSize)sizeForWidth:(CGFloat)width {
   CGFloat height = [self scaledHeightForPreferredSize:[self preferredViewSize] scaledWidth:width];
   return CGSizeMake(width, height);
 }
 
 
-+ (CGSize)preferredViewSize
-{
++ (CGSize)preferredViewSize {
   return CGSizeMake(kDesignWidth, kDesignHeight);
 }
 
-+ (CGFloat)scaledHeightForPreferredSize:(CGSize)preferredSize scaledWidth:(CGFloat)scaledWidth
-{
++ (CGFloat)scaledHeightForPreferredSize:(CGSize)preferredSize scaledWidth:(CGFloat)scaledWidth {
   CGFloat scale = scaledWidth / kDesignWidth;
   CGFloat scaledHeight = ceilf(scale * (kDesignHeight - kFixedLabelsAreaHeight)) + kFixedLabelsAreaHeight;
   
   return scaledHeight;
 }
 
-#pragma mark - Image
+#pragma mark - view operations
 
-- (CGFloat)imageRatioFromSize:(CGSize)size
-{
+- (CGFloat)imageRatioFromSize:(CGSize)size {
   CGFloat imageHeight = size.height - kFixedLabelsAreaHeight;
   CGFloat imageRatio = imageHeight / size.width;
   
   return imageRatio;
 }
 
-- (CGSize)imageSize
-{
+- (CGSize)imageSize {
   if (!CGSizeEqualToSize(self.dealImageView.frame.size, CGSizeZero)) {
     return self.dealImageView.frame.size;
   } else if (!CGSizeEqualToSize(self.calculatedSize, CGSizeZero)) {
@@ -377,14 +349,13 @@ const CGFloat kSoldOutGBHeight = 50.0;
   }
 }
 
-- (void)loadImage
-{
+- (void)loadImage {
   CGSize imageSize = [self imageSize];
   if (CGSizeEqualToSize(CGSizeZero, imageSize)) {
     return;
   }
   
-  NSURL *url = [self.nodeModel imageURLWithSize:imageSize];
+  NSURL *url = [self.viewModel imageURLWithSize:imageSize];
   
   // if we're trying to set the deal image to what it already was, skip the work
   if ([[url absoluteString] isEqualToString:[self.dealImageView.URL absoluteString]]) {

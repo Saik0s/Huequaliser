@@ -10,7 +10,7 @@ import Foundation
 import AsyncDisplayKit
 import IGListKit
 
-final class LabelSectionController: ListSectionController, ASSectionController {
+final class LabelSectionController: IGListSectionController, IGListSectionType, ASSectionController {
     var object: String?
 
     func nodeBlockForItem(at index: Int) -> ASCellNodeBlock {
@@ -22,22 +22,22 @@ final class LabelSectionController: ListSectionController, ASSectionController {
         }
     }
     
-    override func numberOfItems() -> Int {
+    func numberOfItems() -> Int {
         return 1
     }
     
-    override func didUpdate(to object: Any) {
+    func didUpdate(to object: Any) {
         self.object = String(describing: object)
     }
     
-    override func didSelectItem(at index: Int) {}
+    func didSelectItem(at index: Int) {}
     
     //ASDK Replacement
-    override func sizeForItem(at index: Int) -> CGSize {
+    func sizeForItem(at index: Int) -> CGSize {
         return ASIGListSectionControllerMethods.sizeForItem(at: index)
     }
     
-    override func cellForItem(at index: Int) -> UICollectionViewCell {
+    func cellForItem(at index: Int) -> UICollectionViewCell {
         return ASIGListSectionControllerMethods.cellForItem(at: index, sectionController: self)
     }
 }

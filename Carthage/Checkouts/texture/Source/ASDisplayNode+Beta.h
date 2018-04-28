@@ -192,8 +192,6 @@ extern void ASDisplayNodePerformBlockOnEveryYogaChild(ASDisplayNode * _Nullable 
 @interface ASLayoutElementStyle (Yoga)
 
 - (YGNodeRef)yogaNodeCreateIfNeeded;
-- (void)destroyYogaNode;
-
 @property (nonatomic, assign, readonly) YGNodeRef yogaNode;
 
 @property (nonatomic, assign, readwrite) ASStackLayoutDirection flexDirection;

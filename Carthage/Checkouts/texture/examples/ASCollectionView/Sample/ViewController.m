@@ -23,13 +23,10 @@
 
 #define ASYNC_COLLECTION_LAYOUT 0
 
-static CGSize const kItemSize = (CGSize){180, 90};
-
 @interface ViewController () <ASCollectionDataSource, ASCollectionDelegateFlowLayout, ASCollectionGalleryLayoutPropertiesProviding>
 
 @property (nonatomic, strong) ASCollectionNode *collectionNode;
-@property (nonatomic, strong) NSMutableArray<NSMutableArray<NSString *> *> *data;
-@property (nonatomic, strong) UILongPressGestureRecognizer *moveRecognizer;
+@property (nonatomic, strong) NSArray *data;
 
 @end
 
@@ -37,13 +34,18 @@ static CGSize const kItemSize = (CGSize){180, 90};
 
 #pragma mark - Lifecycle
 
+- (void)dealloc
+{
+  self.collectionNode.dataSource = nil;
+  self.collectionNode.delegate = nil;
+  
+  NSLog(@"ViewController is deallocing");
+}
+
 - (void)viewDidLoad
 {
   [super viewDidLoad];
 
-  self.moveRecognizer = [[UILongPressGestureRecognizer alloc] initWithTarget:self action:@selector(handleLongPress)];
-  [self.view addGestureRecognizer:self.moveRecognizer];
-  
 #if ASYNC_COLLECTION_LAYOUT
   ASCollectionGalleryLayoutDelegate *layoutDelegate = [[ASCollectionGalleryLayoutDelegate alloc] initWithScrollableDirections:ASScrollDirectionVerticalDirections];
   layoutDelegate.propertiesProvider = self;
@@ -52,7 +54,6 @@ static CGSize const kItemSize = (CGSize){180, 90};
   UICollectionViewFlowLayout *layout = [[UICollectionViewFlowLayout alloc] init];
   layout.headerReferenceSize = CGSizeMake(50.0, 50.0);
   layout.footerReferenceSize = CGSizeMake(50.0, 50.0);
-  layout.itemSize = kItemSize;
   self.collectionNode = [[ASCollectionNode alloc] initWithFrame:self.view.bounds collectionViewLayout:layout];
   [self.collectionNode registerSupplementaryNodeOfKind:UICollectionElementKindSectionHeader];
   [self.collectionNode registerSupplementaryNodeOfKind:UICollectionElementKindSectionFooter];
@@ -72,35 +73,32 @@ static CGSize const kItemSize = (CGSize){180, 90};
   self.navigationItem.leftBarButtonItem = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemRefresh
                                                                                         target:self
                                                                                         action:@selector(reloadTapped)];
-  [self loadData];
-#else
+#endif
+
+#if SIMULATE_WEB_RESPONSE
   __weak typeof(self) weakSelf = self;
-  dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(2 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-    [weakSelf handleSimulatedWebResponse];
+  void(^mockWebService)() = ^{
+    NSLog(@"ViewController \"got data from a web service\"");
+    ViewController *strongSelf = weakSelf;
+    if (strongSelf != nil)
+    {
+      NSLog(@"ViewController is not nil");
+      strongSelf->_data = [[NSArray alloc] init];
+      [strongSelf->_collectionNode performBatchUpdates:^{
+        [strongSelf->_collectionNode insertSections:[[NSIndexSet alloc] initWithIndexesInRange:NSMakeRange(0, 100)]];
+      } completion:nil];
+      NSLog(@"ViewController finished updating collectionNode");
+    }
+    else {
+      NSLog(@"ViewController is nil - won't update collectionNode");
+    }
+  };
+  
+  dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(2 * NSEC_PER_SEC)), dispatch_get_main_queue(), mockWebService);
+  dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(4 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+    [self.navigationController popViewControllerAnimated:YES];
   });
 #endif
-}
-
-- (void)handleSimulatedWebResponse
-{
-  [self.collectionNode performBatchUpdates:^{
-    [self loadData];
-    [self.collectionNode insertSections:[NSIndexSet indexSetWithIndexesInRange:NSMakeRange(0, self.data.count)]];
-  } completion:nil];
-}
-
-- (void)loadData
-{
-  // Form our data array
-  typeof(self.data) data = [NSMutableArray array];
-  for (NSInteger s = 0; s < 100; s++) {
-    NSMutableArray *items = [NSMutableArray array];
-    for (NSInteger i = 0; i < 10; i++) {
-      items[i] = [NSString stringWithFormat:@"[%zd.%zd] says hi", s, i];
-    }
-    data[s] = items;
-  }
-  self.data = data;
 }
 
 #pragma mark - Button Actions
@@ -117,42 +115,14 @@ static CGSize const kItemSize = (CGSize){180, 90};
 - (CGSize)galleryLayoutDelegate:(ASCollectionGalleryLayoutDelegate *)delegate sizeForElements:(ASElementMap *)elements
 {
   ASDisplayNodeAssertMainThread();
-  return kItemSize;
+  return CGSizeMake(180, 90);
 }
 
-- (void)handleLongPress
-{
-  UICollectionView *collectionView = self.collectionNode.view;
-  CGPoint location = [self.moveRecognizer locationInView:collectionView];
-  switch (self.moveRecognizer.state) {
-    case UIGestureRecognizerStateBegan: {
-      NSIndexPath *indexPath = [collectionView indexPathForItemAtPoint:location];
-      if (indexPath) {
-        [collectionView beginInteractiveMovementForItemAtIndexPath:indexPath];
-      }
-      break;
-    }
-    case UIGestureRecognizerStateChanged:
-      [collectionView updateInteractiveMovementTargetPosition:location];
-      break;
-    case UIGestureRecognizerStateEnded:
-      [collectionView endInteractiveMovement];
-      break;
-    case UIGestureRecognizerStateFailed:
-    case UIGestureRecognizerStateCancelled:
-      [collectionView cancelInteractiveMovement];
-      break;
-    case UIGestureRecognizerStatePossible:
-      // nop
-      break;
-  }
-}
-
-#pragma mark - ASCollectionDataSource
+#pragma mark - ASCollectionView Data Source
 
 - (ASCellNodeBlock)collectionNode:(ASCollectionNode *)collectionNode nodeBlockForItemAtIndexPath:(NSIndexPath *)indexPath;
 {
-  NSString *text = self.data[indexPath.section][indexPath.item];
+  NSString *text = [NSString stringWithFormat:@"[%zd.%zd] says hi", indexPath.section, indexPath.item];
   return ^{
     return [[ItemNode alloc] initWithString:text];
   };
@@ -169,28 +139,17 @@ static CGSize const kItemSize = (CGSize){180, 90};
 
 - (NSInteger)collectionNode:(ASCollectionNode *)collectionNode numberOfItemsInSection:(NSInteger)section
 {
-  return self.data[section].count;
+  return 10;
 }
 
 - (NSInteger)numberOfSectionsInCollectionNode:(ASCollectionNode *)collectionNode
 {
-  return self.data.count;
+#if SIMULATE_WEB_RESPONSE
+  return _data == nil ? 0 : 100;
+#else
+  return 100;
+#endif
 }
-
-- (BOOL)collectionNode:(ASCollectionNode *)collectionNode canMoveItemWithNode:(ASCellNode *)node
-{
-  return YES;
-}
-
-- (void)collectionNode:(ASCollectionNode *)collectionNode moveItemAtIndexPath:(NSIndexPath *)sourceIndexPath toIndexPath:(NSIndexPath *)destinationIndexPath
-{
-  __auto_type sectionArray = self.data[sourceIndexPath.section];
-  __auto_type object = sectionArray[sourceIndexPath.item];
-  [sectionArray removeObjectAtIndex:sourceIndexPath.item];
-  [self.data[destinationIndexPath.section] insertObject:object atIndex:destinationIndexPath.item];
-}
-
-#pragma mark - ASCollectionDelegate
 
 - (void)collectionNode:(ASCollectionNode *)collectionNode willBeginBatchFetchWithContext:(ASBatchContext *)context
 {

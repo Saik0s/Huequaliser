@@ -1,18 +1,12 @@
 //
 //  ASTextLayout.m
-//  Texture
+//  Modified from YYText <https://github.com/ibireme/YYText>
 //
-//  Copyright (c) 2014-present, Facebook, Inc.  All rights reserved.
-//  This source code is licensed under the BSD-style license found in the
-//  LICENSE file in the /ASDK-Licenses directory of this source tree. An additional
-//  grant of patent rights can be found in the PATENTS file in the same directory.
+//  Created by ibireme on 15/3/3.
+//  Copyright (c) 2015 ibireme.
 //
-//  Modifications to this file made after 4/13/2017 are: Copyright (c) through the present,
-//  Pinterest, Inc.  Licensed under the Apache License, Version 2.0 (the "License");
-//  you may not use this file except in compliance with the License.
-//  You may obtain a copy of the License at
-//
-//      http://www.apache.org/licenses/LICENSE-2.0
+//  This source code is licensed under the MIT-style license found in the
+//  LICENSE file in the root directory of this source tree.
 //
 
 #import <AsyncDisplayKit/ASTextLayout.h>
@@ -105,18 +99,18 @@ static CGColorRef ASTextGetCGColor(CGColorRef color) {
   id<ASTextLinePositionModifier> _linePositionModifier;
 }
 
-+ (instancetype)containerWithSize:(CGSize)size NS_RETURNS_RETAINED {
++ (instancetype)containerWithSize:(CGSize)size {
   return [self containerWithSize:size insets:UIEdgeInsetsZero];
 }
 
-+ (instancetype)containerWithSize:(CGSize)size insets:(UIEdgeInsets)insets NS_RETURNS_RETAINED {
++ (instancetype)containerWithSize:(CGSize)size insets:(UIEdgeInsets)insets {
   ASTextContainer *one = [self new];
   one.size = ASTextClipCGSize(size);
   one.insets = insets;
   return one;
 }
 
-+ (instancetype)containerWithPath:(UIBezierPath *)path NS_RETURNS_RETAINED {
++ (instancetype)containerWithPath:(UIBezierPath *)path {
   ASTextContainer *one = [self new];
   one.path = path;
   return one;
@@ -411,9 +405,25 @@ dispatch_semaphore_signal(_lock);
   container->_readonly = YES;
   maximumNumberOfRows = container.maximumNumberOfRows;
   
+  // CoreText bug when draw joined emoji since iOS 8.3.
+  // See -[NSMutableAttributedString setClearColorToJoinedEmoji] for more information.
+  static BOOL needFixJoinedEmojiBug = NO;
   // It may use larger constraint size when create CTFrame with
   // CTFramesetterCreateFrame in iOS 10.
-  BOOL needFixLayoutSizeBug = AS_AT_LEAST_IOS10;
+  static BOOL needFixLayoutSizeBug = NO;
+  static dispatch_once_t onceToken;
+  dispatch_once(&onceToken, ^{
+    double systemVersionDouble = [UIDevice currentDevice].systemVersion.doubleValue;
+    if (8.3 <= systemVersionDouble && systemVersionDouble < 9) {
+      needFixJoinedEmojiBug = YES;
+    }
+    if (systemVersionDouble >= 10) {
+      needFixLayoutSizeBug = YES;
+    }
+  });
+  if (needFixJoinedEmojiBug) {
+    [((NSMutableAttributedString *)text) as_setClearColorToJoinedEmoji];
+  }
   
   layout = [[ASTextLayout alloc] _init];
   layout.text = text;

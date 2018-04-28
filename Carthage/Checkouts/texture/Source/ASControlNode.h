@@ -141,17 +141,12 @@ static UIControlState const ASControlStateSelected ASDISPLAYNODE_DEPRECATED_MSG(
   @param event The event which triggered these control actions. May be nil.
  */
 - (void)sendActionsForControlEvents:(ASControlNodeEvent)controlEvents withEvent:(nullable UIEvent *)event;
-@end
-
 #if TARGET_OS_TV
-@interface ASControlNode (tvOS)
-
 /**
  @abstract How the node looks when it isn't focused. Exposed here so that subclasses can override.
  */
 - (void)setDefaultFocusAppearance;
-
-@end
 #endif
+@end
 
 NS_ASSUME_NONNULL_END

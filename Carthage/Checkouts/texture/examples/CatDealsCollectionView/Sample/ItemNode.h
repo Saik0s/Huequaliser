@@ -20,6 +20,7 @@
 
 @interface ItemNode : ASCellNode
 
+- initWithViewModel:(ItemViewModel *)viewModel;
 + (CGSize)sizeForWidth:(CGFloat)width;
 + (CGSize)preferredViewSize;
 

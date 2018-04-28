@@ -65,7 +65,7 @@
 #pragma mark - Class
 
 + (instancetype)componentsWithAttributedSeedString:(NSAttributedString *)attributedSeedString
-                                 textContainerSize:(CGSize)textContainerSize NS_RETURNS_RETAINED
+                                 textContainerSize:(CGSize)textContainerSize
 {
   NSTextStorage *textStorage = attributedSeedString ? [[NSTextStorage alloc] initWithAttributedString:attributedSeedString] : [[NSTextStorage alloc] init];
 
@@ -76,7 +76,7 @@
 
 + (instancetype)componentsWithTextStorage:(NSTextStorage *)textStorage
                         textContainerSize:(CGSize)textContainerSize
-                            layoutManager:(NSLayoutManager *)layoutManager NS_RETURNS_RETAINED
+                            layoutManager:(NSLayoutManager *)layoutManager
 {
   ASTextKitComponents *components = [[self alloc] init];
 

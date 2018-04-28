@@ -67,10 +67,7 @@ final class PhotoFeedModel {
 	private func fetchNextPageOfPopularPhotos(replaceData: Bool, numberOfAdditionsCompletion: @escaping (Int, NetworkingErrors?) -> ()) {
 
 		if currentPage == totalPages, currentPage != 0 {
-			DispatchQueue.main.async {
-				numberOfAdditionsCompletion(0, .customError("No pages left to parse"))
-			}
-            return
+			return numberOfAdditionsCompletion(0, .customError("No pages left to parse"))
 		}
 
 		var newPhotos: [PhotoModel] = []
@@ -109,9 +106,7 @@ final class PhotoFeedModel {
 
 				case .failure(let fail):
 				print(fail)
-                DispatchQueue.main.async {
-                    numberOfAdditionsCompletion(0, fail)
-                }
+				numberOfAdditionsCompletion(0, fail)
 			}
 		}
 	}

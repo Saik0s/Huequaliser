@@ -33,9 +33,3 @@
 
 @interface FlexibleSeparatorSurroundingContent : LayoutExampleNode
 @end
-
-@interface CornerLayoutExample : PhotoWithOutsetIconOverlay
-@end
-
-@interface UserProfileSample : LayoutExampleNode
-@end

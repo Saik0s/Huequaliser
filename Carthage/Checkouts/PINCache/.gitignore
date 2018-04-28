@@ -6,6 +6,7 @@
 *.mode2v3
 *.pbxuser
 *.perspectivev3
+*.xcworkspace
 xcuserdata
 
 #Ignore textmate build errors
@@ -15,11 +16,7 @@ xcuserdata
 *.swp
 *~.nib
 
+#Ignore the build, since we don't want archived builds
+build
+
 .gitattributes
-
-# Buck
-/buck-out
-/.buckconfig.local
-/.buckd
-
-Carthage/Build

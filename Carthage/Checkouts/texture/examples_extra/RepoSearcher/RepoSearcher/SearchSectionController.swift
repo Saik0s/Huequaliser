@@ -13,7 +13,7 @@ protocol SearchSectionControllerDelegate: class {
     func searchSectionController(_ sectionController: SearchSectionController, didChangeText text: String)
 }
 
-final class SearchSectionController: ListSectionController, ASSectionController {
+final class SearchSectionController: IGListSectionController, IGListSectionType, ASSectionController {
     
     weak var delegate: SearchSectionControllerDelegate?
 
@@ -28,25 +28,25 @@ final class SearchSectionController: ListSectionController, ASSectionController 
         }
     }
     
-    override func numberOfItems() -> Int {
+    func numberOfItems() -> Int {
         return 1
     }
     
-    override func didUpdate(to object: Any) {}
-    override func didSelectItem(at index: Int) {}
+    func didUpdate(to object: Any) {}
+    func didSelectItem(at index: Int) {}
     
     //ASDK Replacement
-    override func sizeForItem(at index: Int) -> CGSize {
+    func sizeForItem(at index: Int) -> CGSize {
         return ASIGListSectionControllerMethods.sizeForItem(at: index)
     }
     
-    override func cellForItem(at index: Int) -> UICollectionViewCell {
+    func cellForItem(at index: Int) -> UICollectionViewCell {
         return ASIGListSectionControllerMethods.cellForItem(at: index, sectionController: self)
     }
 }
 
-extension SearchSectionController: ListScrollDelegate {
-    func listAdapter(_ listAdapter: ListAdapter, didScroll sectionController: ListSectionController) {
+extension SearchSectionController: IGListScrollDelegate {
+    func listAdapter(_ listAdapter: IGListAdapter, didScroll sectionController: IGListSectionController) {
         guard let searchNode = collectionContext?.nodeForItem(at: 0, sectionController: self) as? SearchNode else { return }
         
         let searchBar = searchNode.searchBarNode.searchBar
@@ -54,8 +54,8 @@ extension SearchSectionController: ListScrollDelegate {
         searchBar.resignFirstResponder()
     }
     
-    func listAdapter(_ listAdapter: ListAdapter, willBeginDragging sectionController: ListSectionController) {}
-    func listAdapter(_ listAdapter: ListAdapter, didEndDragging sectionController: ListSectionController, willDecelerate decelerate: Bool) {}
+    func listAdapter(_ listAdapter: IGListAdapter!, willBeginDragging sectionController: IGListSectionController!) {}
+    func listAdapter(_ listAdapter: IGListAdapter!, didEndDragging sectionController: IGListSectionController!, willDecelerate decelerate: Bool) {}
 
 }
 

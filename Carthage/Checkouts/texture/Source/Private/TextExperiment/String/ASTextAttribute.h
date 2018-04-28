@@ -1,18 +1,12 @@
 //
 //  ASTextAttribute.h
-//  Texture
+//  Modified from YYText <https://github.com/ibireme/YYText>
 //
-//  Copyright (c) 2014-present, Facebook, Inc.  All rights reserved.
-//  This source code is licensed under the BSD-style license found in the
-//  LICENSE file in the /ASDK-Licenses directory of this source tree. An additional
-//  grant of patent rights can be found in the PATENTS file in the same directory.
+//  Created by ibireme on 14/10/26.
+//  Copyright (c) 2015 ibireme.
 //
-//  Modifications to this file made after 4/13/2017 are: Copyright (c) through the present,
-//  Pinterest, Inc.  Licensed under the Apache License, Version 2.0 (the "License");
-//  you may not use this file except in compliance with the License.
-//  You may obtain a copy of the License at
-//
-//      http://www.apache.org/licenses/LICENSE-2.0
+//  This source code is licensed under the MIT-style license found in the
+//  LICENSE file in the root directory of this source tree.
 //
 
 #import <UIKit/UIKit.h>
@@ -179,7 +173,7 @@ typedef void(^ASTextAction)(UIView *containerView, NSAttributedString *text, NSR
  Example: If :) is replace by a custom emoji (such as😊), the backed string can be set to @":)".
  */
 @interface ASTextBackedString : NSObject <NSCoding, NSCopying>
-+ (instancetype)stringWithString:(nullable NSString *)string NS_RETURNS_RETAINED;
++ (instancetype)stringWithString:(nullable NSString *)string;
 @property (nullable, nonatomic, copy) NSString *string; ///< backed string
 @end
 
@@ -194,7 +188,7 @@ typedef void(^ASTextAction)(UIView *containerView, NSAttributedString *text, NSR
  selection and edit.
  */
 @interface ASTextBinding : NSObject <NSCoding, NSCopying>
-+ (instancetype)bindingWithDeleteConfirm:(BOOL)deleteConfirm NS_RETURNS_RETAINED;
++ (instancetype)bindingWithDeleteConfirm:(BOOL)deleteConfirm;
 @property (nonatomic) BOOL deleteConfirm; ///< confirm the range when delete in ASTextView
 @end
 
@@ -207,7 +201,7 @@ typedef void(^ASTextAction)(UIView *containerView, NSAttributedString *text, NSR
  It's similar to `NSShadow`, but offers more options.
  */
 @interface ASTextShadow : NSObject <NSCoding, NSCopying>
-+ (instancetype)shadowWithColor:(nullable UIColor *)color offset:(CGSize)offset radius:(CGFloat)radius NS_RETURNS_RETAINED;
++ (instancetype)shadowWithColor:(nullable UIColor *)color offset:(CGSize)offset radius:(CGFloat)radius;
 
 @property (nullable, nonatomic, strong) UIColor *color; ///< shadow color
 @property (nonatomic) CGSize offset;                    ///< shadow offset
@@ -215,7 +209,7 @@ typedef void(^ASTextAction)(UIView *containerView, NSAttributedString *text, NSR
 @property (nonatomic) CGBlendMode blendMode;            ///< shadow blend mode
 @property (nullable, nonatomic, strong) ASTextShadow *subShadow;  ///< a sub shadow which will be added above the parent shadow
 
-+ (instancetype)shadowWithNSShadow:(NSShadow *)nsShadow NS_RETURNS_RETAINED; ///< convert NSShadow to ASTextShadow
++ (instancetype)shadowWithNSShadow:(NSShadow *)nsShadow; ///< convert NSShadow to ASTextShadow
 - (NSShadow *)nsShadow; ///< convert ASTextShadow to NSShadow
 @end
 
@@ -229,8 +223,8 @@ typedef void(^ASTextAction)(UIView *containerView, NSAttributedString *text, NSR
  when it's used as strikethrough, the line is drawn above text glyphs.
  */
 @interface ASTextDecoration : NSObject <NSCoding, NSCopying>
-+ (instancetype)decorationWithStyle:(ASTextLineStyle)style NS_RETURNS_RETAINED;
-+ (instancetype)decorationWithStyle:(ASTextLineStyle)style width:(nullable NSNumber *)width color:(nullable UIColor *)color NS_RETURNS_RETAINED;
++ (instancetype)decorationWithStyle:(ASTextLineStyle)style;
++ (instancetype)decorationWithStyle:(ASTextLineStyle)style width:(nullable NSNumber *)width color:(nullable UIColor *)color;
 @property (nonatomic) ASTextLineStyle style;                   ///< line style
 @property (nullable, nonatomic, strong) NSNumber *width;       ///< line width (nil means automatic width)
 @property (nullable, nonatomic, strong) UIColor *color;        ///< line color (nil means automatic color)
@@ -252,8 +246,8 @@ typedef void(^ASTextAction)(UIView *containerView, NSAttributedString *text, NSR
  ╰──────╯
  */
 @interface ASTextBorder : NSObject <NSCoding, NSCopying>
-+ (instancetype)borderWithLineStyle:(ASTextLineStyle)lineStyle lineWidth:(CGFloat)width strokeColor:(nullable UIColor *)color NS_RETURNS_RETAINED;
-+ (instancetype)borderWithFillColor:(nullable UIColor *)color cornerRadius:(CGFloat)cornerRadius NS_RETURNS_RETAINED;
++ (instancetype)borderWithLineStyle:(ASTextLineStyle)lineStyle lineWidth:(CGFloat)width strokeColor:(nullable UIColor *)color;
++ (instancetype)borderWithFillColor:(nullable UIColor *)color cornerRadius:(CGFloat)cornerRadius;
 @property (nonatomic) ASTextLineStyle lineStyle;              ///< border line style
 @property (nonatomic) CGFloat strokeWidth;                    ///< border line width
 @property (nullable, nonatomic, strong) UIColor *strokeColor; ///< border line color
@@ -276,7 +270,7 @@ typedef void(^ASTextAction)(UIView *containerView, NSAttributedString *text, NSR
  then it will be added to the text container's view or layer.
  */
 @interface ASTextAttachment : NSObject<NSCoding, NSCopying>
-+ (instancetype)attachmentWithContent:(nullable id)content NS_RETURNS_RETAINED;
++ (instancetype)attachmentWithContent:(nullable id)content;
 @property (nullable, nonatomic, strong) id content;             ///< Supported type: UIImage, UIView, CALayer
 @property (nonatomic) UIViewContentMode contentMode;            ///< Content display mode.
 @property (nonatomic) UIEdgeInsets contentInsets;               ///< The insets when drawing content.
@@ -309,14 +303,14 @@ typedef void(^ASTextAction)(UIView *containerView, NSAttributedString *text, NSR
  @param attributes The attributes which will replace original attributes when highlight,
  If the value is NSNull, it will removed when highlight.
  */
-+ (instancetype)highlightWithAttributes:(nullable NSDictionary<NSString *, id> *)attributes NS_RETURNS_RETAINED;
++ (instancetype)highlightWithAttributes:(nullable NSDictionary<NSString *, id> *)attributes;
 
 /**
  Convenience methods to create a default highlight with the specifeid background color.
  
  @param color The background border color.
  */
-+ (instancetype)highlightWithBackgroundColor:(nullable UIColor *)color NS_RETURNS_RETAINED;
++ (instancetype)highlightWithBackgroundColor:(nullable UIColor *)color;
 
 // Convenience methods below to set the `attributes`.
 - (void)setFont:(nullable UIFont *)font;

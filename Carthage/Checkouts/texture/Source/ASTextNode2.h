@@ -11,7 +11,28 @@
 //
 
 #import <AsyncDisplayKit/ASControlNode.h>
-#import <AsyncDisplayKit/ASTextNodeCommon.h>
+
+#if !ASTEXTNODE_EXPERIMENT_GLOBAL_ENABLE
+// Import this to get ASTextNodeHighlightStyle
+#import <AsyncDisplayKit/ASTextNode.h>
+#else
+@protocol ASTextNodeDelegate;
+
+/**
+ * Highlight styles.
+ */
+typedef NS_ENUM(NSUInteger, ASTextNodeHighlightStyle) {
+  /**
+   * Highlight style for text on a light background.
+   */
+  ASTextNodeHighlightStyleLight,
+
+  /**
+   * Highlight style for text on a dark background.
+   */
+  ASTextNodeHighlightStyleDark
+};
+#endif
 
 NS_ASSUME_NONNULL_BEGIN
 

@@ -36,7 +36,7 @@ class StarRatingNode: ASDisplayNode {
         for i in 0..<5 {
             let imageNode = ASImageNode()
             imageNode.image = i <= self.rating ? UIImage(named: "filled_star") : UIImage(named: "unfilled_star")
-            imageNode.style.preferredSize = self.starSize
+            imageNode.preferredFrameSize = self.starSize
             self.starImageNodes.append(imageNode)
         }
     }

@@ -19,7 +19,7 @@ changelog:
 	Scripts/changelog
 
 .PHONY: carthage
-dependencies:
+carthage:
 	Scripts/cart
 
 .PHONY: formatter

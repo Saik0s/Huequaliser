@@ -104,18 +104,6 @@
   return [self initWithStyle:UITableViewStylePlain];
 }
 
-#if ASDISPLAYNODE_ASSERTIONS_ENABLED
-- (void)dealloc
-{
-  if (self.nodeLoaded) {
-    __weak UIView *view = self.view;
-    ASPerformBlockOnMainThread(^{
-      ASDisplayNodeCAssertNil(view.superview, @"Node's view should be removed from hierarchy.");
-    });
-  }
-}
-#endif
-
 #pragma mark ASDisplayNode
 
 - (void)didLoad
@@ -776,11 +764,8 @@ ASLayoutElementCollectionTableSetTraitCollection(_environmentStateLock)
   return (self.nodeLoaded ? [self.view isProcessingUpdates] : NO);
 }
 
-- (void)onDidFinishProcessingUpdates:(void (^)())completion
+- (void)onDidFinishProcessingUpdates:(nullable void (^)())completion
 {
-  if (!completion) {
-    return;
-  }
   if (!self.nodeLoaded) {
     completion();
   } else {

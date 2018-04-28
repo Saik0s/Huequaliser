@@ -14,8 +14,8 @@ class SearchToken: NSObject {}
 
 final class SearchViewController: ASViewController<ASCollectionNode> {
     
-    lazy var adapter: ListAdapter = {
-        return ListAdapter(updater: ListAdapterUpdater(), viewController: self, workingRangeSize: 0)
+    lazy var adapter: IGListAdapter = {
+        return IGListAdapter(updater: IGListAdapterUpdater(), viewController: self, workingRangeSize: 0)
     }()
     
     let words = ["first", "second", "third", "more", "hi", "others"]
@@ -36,8 +36,8 @@ final class SearchViewController: ASViewController<ASCollectionNode> {
     }
 }
 
-extension SearchViewController: ListAdapterDataSource {
-    func listAdapter(_ listAdapter: ListAdapter, sectionControllerFor object: Any) -> ListSectionController {
+extension SearchViewController: IGListAdapterDataSource {
+    func listAdapter(_ listAdapter: IGListAdapter, sectionControllerFor object: Any) -> IGListSectionController {
         if object is SearchToken {
             let section = SearchSectionController()
             section.delegate = self
@@ -46,14 +46,14 @@ extension SearchViewController: ListAdapterDataSource {
         return LabelSectionController()
     }
     
-    func emptyView(for listAdapter: ListAdapter) -> UIView? {
+    func emptyView(for listAdapter: IGListAdapter) -> UIView? {
         // emptyView dosent work in this secenario, there is always one section (searchbar) present in collection
         return nil
     }
     
-    func objects(for listAdapter: ListAdapter) -> [ListDiffable] {
-        guard filterString != "" else { return [searchToken] + words.map { $0 as ListDiffable } }
-        return [searchToken] + words.filter { $0.lowercased().contains(filterString.lowercased()) }.map { $0 as ListDiffable }
+    func objects(for listAdapter: IGListAdapter) -> [IGListDiffable] {
+        guard filterString != "" else { return [searchToken] + words.map { $0 as IGListDiffable } }
+        return [searchToken] + words.filter { $0.lowercased().contains(filterString.lowercased()) }.map { $0 as IGListDiffable }
     }
 }
 

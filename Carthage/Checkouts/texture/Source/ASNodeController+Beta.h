@@ -31,9 +31,6 @@
 - (void)loadNode;
 
 // for descriptions see <ASInterfaceState> definition
-- (void)nodeDidLoad ASDISPLAYNODE_REQUIRES_SUPER;
-- (void)nodeDidLayout ASDISPLAYNODE_REQUIRES_SUPER;
-
 - (void)didEnterVisibleState ASDISPLAYNODE_REQUIRES_SUPER;
 - (void)didExitVisibleState  ASDISPLAYNODE_REQUIRES_SUPER;
 
