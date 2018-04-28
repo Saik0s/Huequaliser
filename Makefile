@@ -1,10 +1,14 @@
 .PHONY: all
-all:
-	bundle exec xcake make
+all: generate
 
 .PHONY: setup
 setup:
 	Scripts/setup
+	xcodegen
+
+.PHONY: generate
+generate:
+	xcodegen
 
 .PHONY: bootstrap
 bootstrap:
@@ -14,9 +18,9 @@ bootstrap:
 changelog:
 	Scripts/changelog
 
-.PHONY: dependencies
+.PHONY: carthage
 dependencies:
-	Scripts/dependencies
+	Scripts/cart
 
 .PHONY: formatter
 formatter:

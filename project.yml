@@ -1,0 +1,70 @@
+name: Huequaliser
+options:
+  createIntermediateGroups: true
+  bundleIdPrefix: com.igortarasenko
+  deploymentTarget:
+    iOS: 9.1
+settings:
+  ENABLE_BITCODE: NO
+targets:
+  Huequaliser:
+    type: application
+    platform: iOS
+    attributes:
+      ProvisioningStyle: Automatic
+    sources:
+      - Huequaliser/Sources
+      - Huequaliser/Resources
+    settings:
+      TARGETED_DEVICE_FAMILY: 1
+    dependencies:
+      - carthage: Action
+      - carthage: Alamofire
+      - carthage: AsyncDisplayKit
+      - carthage: Moya
+      - carthage: NSObject_Rx
+      - carthage: OAuth2
+      - carthage: Reachability
+      - carthage: Result
+      - carthage: RxCocoa
+      - carthage: RxMoya
+      - carthage: RxOptional
+      - carthage: RxSwift
+      - carthage: RxSwiftExt
+    scheme:
+      testTargets:
+        - HuequaliserTests
+        - HuequaliserUITests
+      gatherCoverageData: true
+    prebuildScripts:
+      - script: '${SRCROOT}/Scripts/formatter'
+        name: Lint and format source files
+      - script: '${SRCROOT}/Scripts/cpd'
+        name: Copy paste detector
+
+  HuequaliserTests:
+    type: bundle.unit-test
+    platform: iOS
+    sources: Huequaliser/Tests
+    dependencies:
+      - target: Huequaliser
+
+  HuequaliserUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    sources: Huequaliser/UITests
+    dependencies:
+      - target: Huequaliser
+      - carthage: Action
+      - carthage: Alamofire
+      - carthage: AsyncDisplayKit
+      - carthage: Moya
+      - carthage: NSObject_Rx
+      - carthage: OAuth2
+      - carthage: Reachability
+      - carthage: Result
+      - carthage: RxCocoa
+      - carthage: RxMoya
+      - carthage: RxOptional
+      - carthage: RxSwift
+      - carthage: RxSwiftExt

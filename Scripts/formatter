@@ -8,5 +8,11 @@ IFS=$'\n\t'
 cd "${0%/*}/.."
 
 swiftlint autocorrect
-swiftformat --indent 4 --indentcase true Huequaliser
+
+swiftformat --indent 4 \
+            --indentcase true \
+            --wrapelements beforefirst \
+            --commas inline \
+                Huequaliser
+
 swiftlint lint

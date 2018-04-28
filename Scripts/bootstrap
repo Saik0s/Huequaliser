@@ -15,4 +15,4 @@ if [[ -s Gemfile ]]; then
     bundle check || bundle install --full-index
 fi
 
-${0%/*}/dependencies
+${0%/*}/cart

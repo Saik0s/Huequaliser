@@ -1,0 +1,8 @@
+github "p2/OAuth2"
+github "Moya/Moya"
+github "RxSwiftCommunity/NSObject-Rx"
+github "RxSwiftCommunity/Action"
+github "RxSwiftCommunity/RxOptional"
+github "RxSwiftCommunity/RxSwiftExt"
+github "ashleymills/Reachability.swift"
+github "texturegroup/texture" "master"
