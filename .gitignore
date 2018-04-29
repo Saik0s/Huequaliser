@@ -596,3 +596,4 @@ out
 gen
 /cpd-output.xml
 /*.xcodeproj
+/Huequaliser/Sources/Core/Constants.swift

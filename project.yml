@@ -6,6 +6,7 @@ options:
     iOS: 9.1
 settings:
   ENABLE_BITCODE: NO
+  DEVELOPMENT_TEAM: 8A76N862C8
 targets:
   Huequaliser:
     type: application
@@ -25,6 +26,8 @@ targets:
       - carthage: NSObject_Rx
       - carthage: OAuth2
       - carthage: Reachability
+      - carthage: ReactorKit
+      - carthage: ReactorKitRuntime
       - carthage: Result
       - carthage: RxCocoa
       - carthage: RxMoya
