@@ -14,14 +14,25 @@ public final class StatusViewController: ASViewController<StatusNode>, View {
     // MARK: Binding
 
     public func bind(reactor: StatusViewModel) {
-        node.rx.buttonPress
-                .map { Reactor.Action.getCurrentTrack }
+        node.rx.currentTrackTap
+                .map { Reactor.Action.getCurrentlyPlaying }
+                .bind(to: reactor.action)
+                .disposed(by: disposeBag)
+
+        node.rx.bridgeSearchTap
+                .map { Reactor.Action.searchForBridges }
                 .bind(to: reactor.action)
                 .disposed(by: disposeBag)
 
         reactor.state
                 .map { $0.currentTrack }
-                .bind(onNext: { print($0) })
+                .subscribe(onNext: { dlog($0) })
+                .disposed(by: disposeBag)
+
+        reactor.state
+                .map { $0.bridges }
+                .distinctUntilChanged()
+                .subscribe(onNext: { dlog($0) })
                 .disposed(by: disposeBag)
     }
 }

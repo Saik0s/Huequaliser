@@ -4,20 +4,20 @@
 //
 
 public enum SpotifyAPI {
-    case getCurrentTrack
+    case getCurrentlyPlaying
 }
 
 extension SpotifyAPI: SugarTargetType {
     public var route: Route {
         switch self {
-            case .getCurrentTrack:
+            case .getCurrentlyPlaying:
                 return .get("/me/player/currently-playing")
         }
     }
 
     public var parameters: Parameters? {
         switch self {
-            case .getCurrentTrack:
+            case .getCurrentlyPlaying:
                 return nil
         }
     }

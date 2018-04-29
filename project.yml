@@ -3,7 +3,7 @@ options:
   createIntermediateGroups: true
   bundleIdPrefix: com.igortarasenko
   deploymentTarget:
-    iOS: 9.1
+    iOS: 10.0
 settings:
   ENABLE_BITCODE: NO
   DEVELOPMENT_TEAM: 8A76N862C8
@@ -34,6 +34,7 @@ targets:
       - carthage: RxOptional
       - carthage: RxSwift
       - carthage: RxSwiftExt
+      - carthage: Socket
     scheme:
       testTargets:
         - HuequaliserTests

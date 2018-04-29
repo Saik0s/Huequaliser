@@ -4,11 +4,12 @@
 //
 
 /// Holds all app dependencies
-public protocol DependencyContainerType: SpotifyServiceContainer {
+public protocol DependencyContainerType: SpotifyServiceContainer, HueServiceContainer {
     var networking: NetworkingType { get }
 }
 
 public struct DependencyContainer: DependencyContainerType {
     public let networking: NetworkingType
     public let spotifyService: SpotifyServiceType
+    public let hueService: HueServiceType
 }

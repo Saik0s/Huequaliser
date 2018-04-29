@@ -51,7 +51,42 @@ private class OnlineProvider<Target> where Target: SugarTargetType {
 
 public protocol NetworkingType {
     func handleRedirect(url: URL) throws
-    func request(_ target: SpotifyAPI) -> Observable<String>
+
+    func request(_ token: SpotifyAPI) -> Observable<Moya.Response>
+    func mappingRequest<T: Codable>(
+            _ token: SpotifyAPI,
+            atKeyPath keyPath: String?,
+            using decoder: JSONDecoder,
+            failsOnEmptyData: Bool
+    ) -> Observable<T>
+    func mappingRequest<T: Codable>(
+            _ type: T.Type,
+            _ token: SpotifyAPI,
+            atKeyPath keyPath: String?,
+            using decoder: JSONDecoder,
+            failsOnEmptyData: Bool
+    ) -> Observable<T>
+}
+
+public extension NetworkingType {
+    func mappingRequest<T: Codable>(
+            _ token: SpotifyAPI,
+            atKeyPath keyPath: String? = nil,
+            using decoder: JSONDecoder = JSONDecoder(),
+            failsOnEmptyData: Bool = true
+    ) -> Observable<T> {
+        return mappingRequest(token, atKeyPath: keyPath, using: decoder, failsOnEmptyData: failsOnEmptyData)
+    }
+
+    func mappingRequest<T: Codable>(
+            _: T.Type,
+            _ token: SpotifyAPI,
+            atKeyPath keyPath: String? = nil,
+            using decoder: JSONDecoder = JSONDecoder(),
+            failsOnEmptyData: Bool = true
+    ) -> Observable<T> {
+        return mappingRequest(T.self, token, atKeyPath: keyPath, using: decoder, failsOnEmptyData: failsOnEmptyData)
+    }
 }
 
 public struct SpotifySettings {
@@ -65,9 +100,9 @@ public struct SpotifySettings {
 }
 
 internal final class Networking: NetworkingType {
-    // private let bridgeProvider: OnlineProvider<BridgeAPI>
     private let spotifyProvider: OnlineProvider<SpotifyAPI>
     private let spotifySettings: SpotifySettings
+    private let loader: OAuth2DataLoader
     private let spotifyManager: SessionManager = {
         let configuration: URLSessionConfiguration = .default
         var headers: [String: String] = SessionManager.defaultHTTPHeaders
@@ -80,16 +115,43 @@ internal final class Networking: NetworkingType {
         return SessionManager(configuration: configuration)
     }()
 
-    private let loader: OAuth2DataLoader
-
     func handleRedirect(url: URL) throws {
         try loader.oauth2.handleRedirectURL(url)
     }
 
-    internal func request(_ target: SpotifyAPI) -> Observable<String> {
+    public func request(_ token: SpotifyAPI) -> Observable<Moya.Response> {
         loader.oauth2.authConfig.authorizeEmbedded = true
         loader.oauth2.authConfig.authorizeContext = UIApplication.shared.keyWindow?.rootViewController
-        return spotifyProvider.request(target).mapString()
+        return spotifyProvider.request(token)
+    }
+
+    public func mappingRequest<T: Codable>(
+            _ token: SpotifyAPI,
+            atKeyPath keyPath: String? = nil,
+            using decoder: JSONDecoder = JSONDecoder(),
+            failsOnEmptyData: Bool = true
+    ) -> Observable<T> {
+        return request(token).map(
+                T.self,
+                atKeyPath: keyPath,
+                using: decoder,
+                failsOnEmptyData: failsOnEmptyData
+        )
+    }
+
+    public func mappingRequest<T: Codable>(
+            _ type: T.Type,
+            _ token: SpotifyAPI,
+            atKeyPath keyPath: String? = nil,
+            using decoder: JSONDecoder = JSONDecoder(),
+            failsOnEmptyData: Bool = true
+    ) -> Observable<T> {
+        return request(token).map(
+                type,
+                atKeyPath: keyPath,
+                using: decoder,
+                failsOnEmptyData: failsOnEmptyData
+        )
     }
 
     internal init(spotifySettings: SpotifySettings) {
@@ -110,7 +172,7 @@ internal final class Networking: NetworkingType {
         loader = retrier.loader
 
         let endpointClosure: MoyaProvider<SpotifyAPI>.EndpointClosure = { (target: SpotifyAPI) -> Endpoint in
-            let baseURL: URL = URL(string: spotifySettings.apiURL)!
+            let baseURL: URL = URL(string: spotifySettings.apiURL).require()
 
             return Endpoint(
                     url: baseURL.appendingPathComponent(target.path).absoluteString,
@@ -126,6 +188,5 @@ internal final class Networking: NetworkingType {
                 manager: spotifyManager,
                 plugins: [NetworkLoggerPlugin(verbose: true, cURL: true)]
         )
-        // bridgeProvider = OnlineProvider()
     }
 }

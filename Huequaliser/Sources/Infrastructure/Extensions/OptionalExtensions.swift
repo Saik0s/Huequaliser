@@ -40,3 +40,10 @@ public extension Optional {
         return unwrapped
     }
 }
+
+extension Optional: Hashable where Wrapped: Hashable {
+    public var hashValue: Int {
+        if case let Optional.some(value) = self { return value.hashValue }
+        return 0
+    }
+}
