@@ -47,3 +47,24 @@ extension Optional: Hashable where Wrapped: Hashable {
         return 0
     }
 }
+
+public protocol OptionalProtocol {
+    func isSome() -> Bool
+    func unwrap() -> Any
+}
+
+extension Optional: OptionalProtocol {
+    public func isSome() -> Bool {
+        switch self {
+            case .none: return false
+            case .some: return true
+        }
+    }
+
+    public func unwrap() -> Any {
+        switch self {
+            case .none: preconditionFailure("nill unwrap")
+            case let .some(unwrapped): return unwrapped
+        }
+    }
+}

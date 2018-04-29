@@ -14,10 +14,6 @@ public protocol SpotifyServiceType {
     func getCurrentPlayingTrack() -> Observable<CurrentlyPlaying>
 }
 
-public protocol SpotifyServiceContainer {
-    var spotifyService: SpotifyServiceType { get }
-}
-
 // MARK: - SpotifyServiceType implementation
 
 public final class SpotifyService: SpotifyServiceType {
@@ -26,16 +22,15 @@ public final class SpotifyService: SpotifyServiceType {
 
     // MARK: - Private properties
 
-    private let networking: NetworkingType
+    private let networking: SpotifyNetworkingType
 
     // MARK: - Public methods
 
-    internal init(networking: NetworkingType) {
+    internal init(networking: SpotifyNetworkingType) {
         self.networking = networking
     }
 
     public func getCurrentPlayingTrack() -> Observable<CurrentlyPlaying> {
-        // return networking.request(.getCurrentTrack)
-        return networking.mappingRequest(CurrentlyPlaying.self, .getCurrentlyPlaying)
+        return networking.spotifyMappingRequest(CurrentlyPlaying.self, .getCurrentlyPlaying)
     }
 }

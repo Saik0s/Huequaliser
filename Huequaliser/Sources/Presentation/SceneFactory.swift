@@ -7,7 +7,7 @@ import class UIKit.UIViewController
 
 /// Wrapper for factory functions for code completion
 public struct Scene<Callbacks: ViewModelCallbacksType> {
-    public typealias Factory<Callbacks> = (DependencyContainerType) -> (Callbacks, UIViewController)
+    public typealias Factory<Callbacks> = (DependencyContainer) -> (Callbacks, UIViewController)
 
     private let factory: Factory<Callbacks>
 
@@ -16,7 +16,7 @@ public struct Scene<Callbacks: ViewModelCallbacksType> {
     }
 
     public func exec(
-            container: DependencyContainerType
+            container: DependencyContainer
     ) -> ((UIViewController) -> Void) -> (Callbacks, UIViewController) {
         let (sceneCallbacks, viewController) = self.factory(container)
         return { vcClosure in
@@ -32,11 +32,11 @@ public protocol SceneFactoryType {
 }
 
 public final class SceneFactory: SceneFactoryType {
-    private let dependencies: DependencyContainerType
+    private let dependencies: DependencyContainer
 
     // MARK: - Public methods
 
-    public init(dependencies: DependencyContainerType) {
+    public init(dependencies: DependencyContainer) {
         self.dependencies = dependencies
     }
 

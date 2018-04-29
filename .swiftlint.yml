@@ -46,6 +46,8 @@ disabled_rules:
   - superfluous_disable_command
   - operator_whitespace
 
+nesting:
+  type_level: 2
 identifier_name:
   excluded:
     - id
@@ -57,6 +59,9 @@ identifier_name:
     - a
     - b
     - c
+    - on
+    - xy
+    - ct
 line_length: 120
 large_tuple: 3
 number_separator:

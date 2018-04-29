@@ -5,37 +5,33 @@
 
 import Foundation
 import RxCocoa
+import RxOptional
 import RxSwift
 import Socket
 
-public protocol HueServiceType {
-    func searchForBridges() -> Observable<[HueBridge]>
-}
+public final class HueService: AutoInterface {
+    private let networking: HueNetworkingType
 
-public protocol HueServiceContainer {
-    var hueService: HueServiceType { get }
-}
-
-public final class HueService: HueServiceType {
-    private var nupnpRequest: URLRequest {
-        let url: URL = URL(string: "https://www.meethue.com/api/nupnp").require()
-
-        return URLRequest(url: url)
+    internal init(networking: HueNetworkingType) {
+        self.networking = networking
     }
 
-    public init() {}
+    // MARK: - Public methods
 
     public func searchForBridges() -> Observable<[HueBridge]> {
-        return URLSession.shared.rx.decodable(request: nupnpRequest, [HueBridge].self)
+        return networking.hueMappingRequest([HueBridge].self, .getBridgesFromNUPnP)
     }
-}
 
-private extension Reactive where Base: URLSession {
-    func decodable<T: Decodable>(
-            request: URLRequest,
-            _ type: T.Type,
-            decoder: JSONDecoder = JSONDecoder()
-    ) -> Observable<T> {
-        return data(request: request).map { try decoder.decode(type, from: $0) }
+    public func createNewUser() -> Observable<HueUser> {
+        let deviceType: String = "com.huequaliser#ios igor"
+        return networking.hueMappingRequest(
+                [[String: HueUser]].self,
+                .createUser(deviceType: deviceType, clientKey: true)
+                // atKeyPath: "success"
+        ).map { $0.first?.first?.value }.filterNil()
+    }
+
+    public func getAllGroups(for user: String) -> Observable<Groups> {
+        return networking.hueMappingRequest(Groups.self, .getAllGroups(username: user))
     }
 }

@@ -41,6 +41,8 @@ targets:
         - HuequaliserUITests
       gatherCoverageData: true
     prebuildScripts:
+      - script: '${SRCROOT}/Scripts/sourcery'
+        name: Sourcery code generation
       - script: '${SRCROOT}/Scripts/formatter'
         name: Lint and format source files
       - script: '${SRCROOT}/Scripts/cpd'

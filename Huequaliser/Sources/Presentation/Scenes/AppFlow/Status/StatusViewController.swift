@@ -24,13 +24,36 @@ public final class StatusViewController: ASViewController<StatusNode>, View {
                 .bind(to: reactor.action)
                 .disposed(by: disposeBag)
 
+        node.rx.createUserTap
+                .map { Reactor.Action.createNewUser }
+                .bind(to: reactor.action)
+                .disposed(by: disposeBag)
+
+        node.rx.getGroupsTap
+                .map { Reactor.Action.getGroups }
+                .bind(to: reactor.action)
+                .disposed(by: disposeBag)
+
         reactor.state
                 .map { $0.currentTrack }
+                .distinctUntilChanged()
                 .subscribe(onNext: { dlog($0) })
                 .disposed(by: disposeBag)
 
         reactor.state
                 .map { $0.bridges }
+                .distinctUntilChanged()
+                .subscribe(onNext: { dlog($0) })
+                .disposed(by: disposeBag)
+
+        reactor.state
+                .map { $0.user }
+                .distinctUntilChanged()
+                .subscribe(onNext: { dlog($0) })
+                .disposed(by: disposeBag)
+
+        reactor.state
+                .map { $0.groups }
                 .distinctUntilChanged()
                 .subscribe(onNext: { dlog($0) })
                 .disposed(by: disposeBag)

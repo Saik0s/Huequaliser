@@ -1,0 +1,14 @@
+{% for type in types.all %}
+    // sourcery:inline:{{ type.name }}.AutoInitable
+    public init(
+    {% for var in type.storedVariables where variable.readAccess != "private" and variable.readAccess != "fileprivate" %}
+            {{ var.name }}: {{ var.typeName }}{% if var.annotations.default %} = {{ var.annotations.default }}{% else %}{% if var.isOptional %} = nil{% endif %}{% endif %}{% if not forloop.last %},{% endif %}
+    {% endfor %}
+    ) {
+    {% for var in type.storedVariables where variable.readAccess != "private" and variable.readAccess != "fileprivate" %}
+        self.{{ var.name }} = {{ var.name }}
+    {% endfor %}
+    dlog(hueBridge)
+    }
+    // sourcery:end
+{% endfor %}

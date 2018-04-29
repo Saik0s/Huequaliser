@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+#
+# Code generation using sourcery
+
+set -euo pipefail
+IFS=$'\n\t'
+
+cd "${0%/*}/.."
+
+sourcery --sources Huequaliser/Sources \
+         --templates Templates \
+         --output Huequaliser/Sources/Generated \
+         --quiet
+#         --disableCache

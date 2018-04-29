@@ -4,12 +4,13 @@
 //
 
 /// Holds all app dependencies
-public protocol DependencyContainerType: SpotifyServiceContainer, HueServiceContainer {
-    var networking: NetworkingType { get }
-}
-
-public struct DependencyContainer: DependencyContainerType {
+// sourcery:begin: PropertiesProtocolPrefix = "", PropertiesProtocolSuffix = Container
+public struct DependencyContainer: AutoPropertiesProtocol {
     public let networking: NetworkingType
     public let spotifyService: SpotifyServiceType
     public let hueService: HueServiceType
+    public var spotifyNetworking: SpotifyNetworkingType { return networking }
+    public var hueNetworking: HueNetworkingType { return networking }
 }
+
+// sourcery:end

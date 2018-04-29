@@ -18,7 +18,7 @@ private class OnlineProvider<Target> where Target: SugarTargetType {
     fileprivate let provider: MoyaProvider<Target>
 
     fileprivate init(
-            endpointClosure: @escaping ProviderTarget.EndpointClosure = ProviderTarget.defaultEndpointMapping,
+            baseURLClosure: @escaping (Target) -> URL = { $0.baseURL },
             requestClosure: @escaping ProviderTarget.RequestClosure = ProviderTarget.defaultRequestMapping,
             stubClosure: @escaping ProviderTarget.StubClosure = ProviderTarget.neverStub,
             manager: Manager = SessionManager.default,
@@ -27,6 +27,15 @@ private class OnlineProvider<Target> where Target: SugarTargetType {
             online: Observable<Bool> = connectedToInternet()
     ) {
         self.online = online
+        let endpointClosure: MoyaProvider<Target>.EndpointClosure = { (target: Target) -> Endpoint in
+            Endpoint(
+                    url: baseURLClosure(target).appendingPathComponent(target.path).absoluteString,
+                    sampleResponseClosure: { .networkResponse(200, target.sampleData) },
+                    method: target.method,
+                    task: target.task,
+                    httpHeaderFields: target.headers
+            )
+        }
         provider = MoyaProvider(
                 endpointClosure: endpointClosure,
                 requestClosure: requestClosure,
@@ -49,17 +58,36 @@ private class OnlineProvider<Target> where Target: SugarTargetType {
     }
 }
 
-public protocol NetworkingType {
-    func handleRedirect(url: URL) throws
-
-    func request(_ token: SpotifyAPI) -> Observable<Moya.Response>
-    func mappingRequest<T: Codable>(
-            _ token: SpotifyAPI,
+public protocol HueNetworkingType: class {
+    func hueMappingRequest<T: Codable>(
+            _ type: T.Type,
+            _ token: HueAPI,
             atKeyPath keyPath: String?,
             using decoder: JSONDecoder,
             failsOnEmptyData: Bool
     ) -> Observable<T>
-    func mappingRequest<T: Codable>(
+}
+
+public extension HueNetworkingType {
+    func hueMappingRequest<T: Codable>(
+            _: T.Type,
+            _ token: HueAPI,
+            atKeyPath keyPath: String? = nil,
+            using decoder: JSONDecoder = JSONDecoder(),
+            failsOnEmptyData: Bool = true
+    ) -> Observable<T> {
+        return hueMappingRequest(
+                T.self,
+                token,
+                atKeyPath: keyPath,
+                using: decoder,
+                failsOnEmptyData: failsOnEmptyData
+        )
+    }
+}
+
+public protocol SpotifyNetworkingType: class {
+    func spotifyMappingRequest<T: Codable>(
             _ type: T.Type,
             _ token: SpotifyAPI,
             atKeyPath keyPath: String?,
@@ -68,25 +96,26 @@ public protocol NetworkingType {
     ) -> Observable<T>
 }
 
-public extension NetworkingType {
-    func mappingRequest<T: Codable>(
-            _ token: SpotifyAPI,
-            atKeyPath keyPath: String? = nil,
-            using decoder: JSONDecoder = JSONDecoder(),
-            failsOnEmptyData: Bool = true
-    ) -> Observable<T> {
-        return mappingRequest(token, atKeyPath: keyPath, using: decoder, failsOnEmptyData: failsOnEmptyData)
-    }
-
-    func mappingRequest<T: Codable>(
+public extension SpotifyNetworkingType {
+    func spotifyMappingRequest<T: Codable>(
             _: T.Type,
             _ token: SpotifyAPI,
             atKeyPath keyPath: String? = nil,
             using decoder: JSONDecoder = JSONDecoder(),
             failsOnEmptyData: Bool = true
     ) -> Observable<T> {
-        return mappingRequest(T.self, token, atKeyPath: keyPath, using: decoder, failsOnEmptyData: failsOnEmptyData)
+        return spotifyMappingRequest(
+                T.self,
+                token,
+                atKeyPath: keyPath,
+                using: decoder,
+                failsOnEmptyData: failsOnEmptyData
+        )
     }
+}
+
+public protocol NetworkingType: HueNetworkingType, SpotifyNetworkingType {
+    func handleRedirect(url: URL) throws
 }
 
 public struct SpotifySettings {
@@ -100,6 +129,8 @@ public struct SpotifySettings {
 }
 
 internal final class Networking: NetworkingType {
+    private let hueProvider: OnlineProvider<HueAPI>
+
     private let spotifyProvider: OnlineProvider<SpotifyAPI>
     private let spotifySettings: SpotifySettings
     private let loader: OAuth2DataLoader
@@ -119,34 +150,31 @@ internal final class Networking: NetworkingType {
         try loader.oauth2.handleRedirectURL(url)
     }
 
-    public func request(_ token: SpotifyAPI) -> Observable<Moya.Response> {
-        loader.oauth2.authConfig.authorizeEmbedded = true
-        loader.oauth2.authConfig.authorizeContext = UIApplication.shared.keyWindow?.rootViewController
-        return spotifyProvider.request(token)
-    }
-
-    public func mappingRequest<T: Codable>(
-            _ token: SpotifyAPI,
+    public func hueMappingRequest<T: Codable>(
+            _ type: T.Type,
+            _ token: HueAPI,
             atKeyPath keyPath: String? = nil,
             using decoder: JSONDecoder = JSONDecoder(),
             failsOnEmptyData: Bool = true
     ) -> Observable<T> {
-        return request(token).map(
-                T.self,
+        return hueProvider.request(token).map(
+                type,
                 atKeyPath: keyPath,
                 using: decoder,
                 failsOnEmptyData: failsOnEmptyData
-        )
+        ).do(onError: { dlog($0) })
     }
 
-    public func mappingRequest<T: Codable>(
+    public func spotifyMappingRequest<T: Codable>(
             _ type: T.Type,
             _ token: SpotifyAPI,
             atKeyPath keyPath: String? = nil,
             using decoder: JSONDecoder = JSONDecoder(),
             failsOnEmptyData: Bool = true
     ) -> Observable<T> {
-        return request(token).map(
+        loader.oauth2.authConfig.authorizeEmbedded = true
+        loader.oauth2.authConfig.authorizeContext = UIApplication.shared.keyWindow?.rootViewController
+        return spotifyProvider.request(token).map(
                 type,
                 atKeyPath: keyPath,
                 using: decoder,
@@ -171,21 +199,21 @@ internal final class Networking: NetworkingType {
         spotifyManager.retrier = retrier
         loader = retrier.loader
 
-        let endpointClosure: MoyaProvider<SpotifyAPI>.EndpointClosure = { (target: SpotifyAPI) -> Endpoint in
-            let baseURL: URL = URL(string: spotifySettings.apiURL).require()
-
-            return Endpoint(
-                    url: baseURL.appendingPathComponent(target.path).absoluteString,
-                    sampleResponseClosure: { .networkResponse(200, target.sampleData) },
-                    method: target.method,
-                    task: target.task,
-                    httpHeaderFields: target.headers
-            )
-        }
-
         spotifyProvider = OnlineProvider(
-                endpointClosure: endpointClosure,
+                baseURLClosure: { _ in URL(string: spotifySettings.apiURL).require() },
                 manager: spotifyManager,
+                plugins: [NetworkLoggerPlugin(verbose: true, cURL: true)]
+        )
+
+        hueProvider = OnlineProvider(
+                baseURLClosure: { target in
+                    if case HueAPI.getBridgesFromNUPnP = target {
+                        return URL(string: Constants.Hue.meethueURI).require()
+                    }
+
+                    let host: String = AppEnvironment.current.hueBridge?.ipAddress ?? "127.0.0.1"
+                    return URL(string: "http://\(host)").require()
+                },
                 plugins: [NetworkLoggerPlugin(verbose: true, cURL: true)]
         )
     }

@@ -12,7 +12,9 @@ import UIKit
             _: UIApplication,
             didFinishLaunchingWithOptions _: [UIApplicationLaunchOptionsKey: Any]?
     ) -> Bool {
-        let dependencies: DependencyContainerType = DependencyContainer.resolve()
+        // AppEnvironment.pushEnvironment(AppEnvironment.fromStorage())
+        AppEnvironment.restoreFromStorage()
+        let dependencies: DependencyContainer = DependencyContainer.resolve()
         let sceneFactory: SceneFactoryType = SceneFactory(dependencies: dependencies)
         AppEnvironment.updateCurrentEnvironment(dependencies: dependencies, sceneFactory: sceneFactory)
 

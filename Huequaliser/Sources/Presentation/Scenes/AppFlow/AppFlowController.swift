@@ -46,5 +46,18 @@ public final class AppFlowController: UIViewController, View {
                         self?.currentChild = viewController
                     }
                 }).disposed(by: disposeBag)
+
+        AppEnvironment.current.activityIndicator.drive(rx.loadingOverlay).disposed(by: disposeBag)
+        AppEnvironment.current.errorTracker.filterNil().drive(onNext: { error in
+            Log.error(error)
+            let alert = UIAlertController(title: "Error",
+                                          message: error.localizedDescription,
+                                          preferredStyle: .alert)
+            let action = UIAlertAction(title: "OK",
+                                       style: UIAlertActionStyle.cancel,
+                                       handler: nil)
+            alert.addAction(action)
+            self.present(alert, animated: true, completion: nil)
+        }).disposed(by: disposeBag)
     }
 }

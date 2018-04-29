@@ -21,7 +21,7 @@ public extension DependencyContainer {
 
         let spotifyService: SpotifyServiceType = SpotifyService(networking: networking)
 
-        let hueService: HueServiceType = HueService()
+        let hueService: HueServiceType = HueService(networking: networking)
 
         return DependencyContainer(networking: networking, spotifyService: spotifyService, hueService: hueService)
     }
